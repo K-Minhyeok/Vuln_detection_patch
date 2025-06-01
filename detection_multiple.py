@@ -72,7 +72,7 @@ for t in threads:
     t.join()
 
 
-if args:
+if args.json:
     print("hit")
     with open("result.json", "w") as f:
         json.dump(detection_results, f, indent=2)
