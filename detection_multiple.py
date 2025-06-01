@@ -3,10 +3,23 @@ import sys
 import json
 import os
 import threading
+import lief
 from arg_parser import parse_arg
 
+def find_location_vul_symbol(file_path):
+    binary_info = lief.parse(file_path)
 
-def check_has_vulnerable_command(file_path):
+    print(f"Checking Symbols in {file_path}...")
+    
+    for reloc in binary_info.pltgot_relocations:
+        if reloc.has_symbol:
+            if reloc.symbol.name in dangerous_funcs:
+                print(f"\033[91mGOT entry for [ {reloc.symbol.name} ]: 0x{reloc.address:x} \033[0m")
+
+    print("--------------------------------\n")
+
+
+def check_vulnerable_strings(file_path):
     found_funcs = []
     output = subprocess.check_output(["strings",file_path],text=True)
 
@@ -14,20 +27,18 @@ def check_has_vulnerable_command(file_path):
         if func in output:
             found_funcs.append(func)
 
-    print(f"▼ There are {len(found_funcs)} vulnerable_command in [ {file_path} ] ▼")
+    print(f"▼ There are {len(found_funcs)} vulnerable_command in ['\033[92m strings {file_path} \033[0m'] ▼")
     if found_funcs:
-        print(f"\033[91m [ Warning ] : {', '.join(found_funcs)} \033[0m")
+        print(f"\033[91m[ Warning ] : {', '.join(found_funcs)} \033[0m \n")
+        find_location_vul_symbol(file_path)
     else:
-        print("\033[92m [ It's safe as far as I checked  :) ] \033[0m")
+        print("\033[92m[ It's safe as far as I checked  :) ] \033[0m")
 
     with result_lock:
             detection_results.append({
                 "file": file_path,
                 "dangerous_functions": found_funcs
             })
-
-    print('------------------------------------\n')
-
 
 def get_elf_files(directory):
     file_name = []
@@ -63,7 +74,7 @@ threads = []
 
 for i in target_files:
     print(i)
-    t = threading.Thread(target=check_has_vulnerable_command, args=(i,))
+    t = threading.Thread(target=check_vulnerable_strings, args=(i,))
     threads.append(t)
     t.start()
 
