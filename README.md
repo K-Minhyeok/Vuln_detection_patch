@@ -1,7 +1,7 @@
-<h1>Detection of Vulnerable Functions</h1>
+<h1>Detection and patch of Vulnerable Functions</h1>
 
 📌 It can detect if your ELF(.bin) File is Vulnerable.
-
+📌 And we can patch the Vulnerable ELF file 
 
 <h2>[ How to Use ]</h2>
 You can put your several ELF(.bin) files into 'test_ELF_file' as below<br>
@@ -20,11 +20,12 @@ and run **dectection_multipl.py** to get the result
 <h3> > **python detection_multipl.py** </h3>
 <br>
 
-![{C8B6BF0B-8EB4-4E41-8A53-A200AA1D564B}](https://github.com/user-attachments/assets/81e722cd-6097-4046-bbdb-635960e78bf7)
+![{A807E088-7C44-4086-9DC9-48E3C448FF04}](https://github.com/user-attachments/assets/58bbc2df-36d1-42e3-9d4e-2266bb4fa9c7)
 
 <h2> Addtional Options </h2>
 
 1. -j  : Store the result of detection with result.json <br>
-ex)  ![{07B305FC-A037-46A1-AAD5-E6497DABBF66}](https://github.com/user-attachments/assets/3c326cf6-8036-4dc4-bc96-0684132e82b9)
+ex)  ![image](https://github.com/user-attachments/assets/76bde89e-6855-4785-97f3-c8bb50ddd4f1)
+
 
 <br>
