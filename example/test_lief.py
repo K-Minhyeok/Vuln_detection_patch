@@ -7,7 +7,7 @@ def get_plt_address(binary, func_name):
             return f.address
     return None
 
-binary_info = lief.parse("test_ELF_file/test_strncpy")
+binary_info = lief.parse("test_ELF_file/test_gets_w_fgets")
 # Mapping Vuln functions with Safe Functions
 for reloc in binary_info.pltgot_relocations:
     if reloc.has_symbol:

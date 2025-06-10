@@ -7,6 +7,34 @@ import lief
 from arg_parser import parse_arg
 from vuln_safe_mapping import VULN_SAFE_MAP
 
+def get_plt_address(binary, func_name):
+    for f in binary.pltgot_relocations:
+        if f.has_symbol and f.symbol.name == func_name:
+            return f.address
+    return None
+
+def patch_the_function(binary_info,file_path):
+    for reloc in binary_info.pltgot_relocations:
+        if reloc.has_symbol:
+            vuln_func = reloc.symbol.name
+            if vuln_func in VULN_SAFE_MAP:
+                print(f"\033[91m[!] GOT entry for {vuln_func}: 0x{reloc.address:x}\033[0m")
+
+                safe_func = VULN_SAFE_MAP[vuln_func]
+    
+                safe_func_addr = get_plt_address(binary_info, safe_func)
+                if isinstance(safe_func_addr, int):
+                    binary_info.patch_address(reloc.address, safe_func_addr)
+                    print(f"Patched {vuln_func} → {safe_func} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")
+                else:
+                    print(f"Cannot patch: {vuln_func} → {safe_func}  : [ symbol address not found ]\n")
+            #else:
+                #print(f"[ {vuln_func} ] is symboled, but not in Vuln functions.\n")
+    parsed_path = file_path.split('/')
+    dst_path = "test_ELF_file/patched/"+parsed_path[1]
+    #binary_info.write(dst_path)
+    print(f"\033[96mPatched ELF saved as {dst_path}\033[0m")
+
 
 
 def find_location_vul_symbol(file_path,found_funcs):
@@ -14,6 +42,7 @@ def find_location_vul_symbol(file_path,found_funcs):
     symbol_names =[]
     symbol_location =[]
     dynamic_symbols =[]
+    count = 0
 
 
     print(f"Checking Symbols in {file_path}...")
@@ -24,15 +53,23 @@ def find_location_vul_symbol(file_path,found_funcs):
                 symbol_names.append(reloc.symbol.name)
                 symbol_location.append(f"0x{reloc.address:x}")
                 print(f"\033[91mGOT entry for [ {reloc.symbol.name} ]: 0x{reloc.address:x} \033[0m")
+                count=count+1
 
     for sym in binary_info.dynamic_symbols:
         if sym.name in dangerous_funcs:
             if sym.name not in symbol_names:
                 dynamic_symbols.append(sym.name)
                 print(f"\033[93mDynamic symbol [ {sym.name} ] found (not in GOT)\033[0m")
+                count=count+1
 
 
-    print("--------------------------------\n")
+    if(count >0):
+        print("call the patch func\n")
+        patch_the_function(binary_info,file_path)
+    
+    print("=========================================================================================\n")
+
+
     detection_results.append({
         "file": file_path,
         "dangerous_functions": found_funcs,
