@@ -44,7 +44,6 @@ def find_location_vul_symbol(file_path,found_funcs):
     dynamic_symbols =[]
     count = 0
 
-
     print(f"Checking Symbols in {file_path}...")
         
     for reloc in binary_info.pltgot_relocations:
@@ -89,13 +88,12 @@ def check_vulnerable_strings(file_path):
             if func in output:
                 found_funcs.append(func)
 
-        print(f"▼ There are {len(found_funcs)} vulnerable_command in ['\033[92m strings {file_path} \033[0m'] ▼")
+        print(f"▼ There are {len(found_funcs)} vulnerable_commands in ['\033[92m strings {file_path} \033[0m'] ▼")
         if found_funcs:
-            print(f"\033[91m[ Warning ] : {', '.join(found_funcs)} \033[0m \n")
+            print(f"\033[91m[ Warning ] : String {', '.join(found_funcs)} Founded \033[0m \n")
             find_location_vul_symbol(file_path,found_funcs)
         else:
             print("\033[92m[ It's safe as far as I checked  :) ] \033[0m")
-
 
 
 def get_elf_files(directory):

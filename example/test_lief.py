@@ -7,7 +7,7 @@ def get_plt_address(binary, func_name):
             return f.address
     return None
 
-binary_info = lief.parse("test_ELF_file/test_gets_w_fgets")
+binary_info = lief.parse("test_ELF_file/testagain")
 # Mapping Vuln functions with Safe Functions
 for reloc in binary_info.pltgot_relocations:
     if reloc.has_symbol:
@@ -27,5 +27,5 @@ for reloc in binary_info.pltgot_relocations:
             print(f"[ {vuln_func} ] is symboled, but not in Vuln functions.\n")
 
 
-binary_info.write("test_ELF_file/b_test_patched")
+#binary_info.write("test_ELF_file/b_test_patched")
 print("\033[96mPatched ELF saved as b_test_patched\033[0m")
