@@ -54,6 +54,7 @@ def find_location_vul_symbol(file_path, found_funcs):
     symbol_names = []
     symbol_location = []
     dynamic_symbols = []
+    safe_funcs =[]
     count = 0
 
     print(f"Checking Symbols in {file_path}...")
@@ -61,6 +62,7 @@ def find_location_vul_symbol(file_path, found_funcs):
     for reloc in binary_info.pltgot_relocations:
         if reloc.has_symbol and reloc.symbol.name in dangerous_funcs:
             symbol_names.append(reloc.symbol.name)
+            safe_funcs.append(VULN_SAFE_MAP[reloc.symbol.name])
             symbol_location.append(f"0x{reloc.address:x}")
             print(f"\033[91mGOT entry for [ {reloc.symbol.name} ]: 0x{reloc.address:x} \033[0m")
             count += 1
@@ -68,8 +70,11 @@ def find_location_vul_symbol(file_path, found_funcs):
     for sym in binary_info.dynamic_symbols:
         if sym.name in dangerous_funcs and sym.name not in symbol_names:
             dynamic_symbols.append(sym.name)
-            print(f"\033[93mDynamic symbol [ {sym.name} ] found (not in GOT)\033[0m")
-            count += 1
+            if VULN_SAFE_MAP[sym.name] not in safe_funcs :
+                safe_funcs.append(VULN_SAFE_MAP[sym.name])
+                count += 1
+
+        print(f"\033[93mDynamic symbol [ {sym.name} ] found (not in GOT)\033[0m")
 
     if count > 0:
         print("call the patch func\n")
@@ -82,9 +87,11 @@ def find_location_vul_symbol(file_path, found_funcs):
     detection_results.append({
         "dangerous_functions": found_funcs,
         "symbol_name": symbol_names,
-        "symbol_location": symbol_location,
+        # "symbol_location": symbol_location,
         "dynamic_only": dynamic_symbols,
-        "patched_path": patched_path
+        "safe_functsions" : safe_funcs,
+        "count" : count
+        # "patched_path": patched_path
     })
 
 
