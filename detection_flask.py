@@ -7,6 +7,7 @@ import lief
 from flask import Flask, request, jsonify, render_template
 from vuln_safe_mapping import VULN_SAFE_MAP
 
+    
 app = Flask(__name__)
 detection_results = []
 result_lock = threading.Lock()
@@ -48,21 +49,63 @@ def patch_the_function(binary_info, file_path):
     print(f"\033[96mPatched ELF saved as {dst_path}\033[0m")
     return dst_path
 
+def is_fortify_enabled(binary):
+    fortify_funcs = [
+        "__sprintf_chk", "__snprintf_chk", "__fprintf_chk",
+        "__vsprintf_chk", "__vfprintf_chk", "__memcpy_chk", "__strcpy_chk"
+    ]
+    for sym in binary.symbols:
+        if sym.name in fortify_funcs:
+            return True
+    return False
+
+def get_checksec(bin_info):
+    checksec = []
+    
+    if hasattr(bin_info, "relro"):
+        checksec.append(f"RELRO: {bin_info.relro.name}")
+    else:
+        checksec.append("RELRO: None")
+
+
+    # Canary
+    if getattr(bin_info, "has_canary", False):
+        checksec.append("Canary")
+        print("hit can")
+
+    # NX
+    if getattr(bin_info, "has_nx", False):
+        checksec.append("NX")
+        print("hit nx")
+
+    # PIE
+    if getattr(bin_info, "has_pie", False):
+        checksec.append("PIE")
+        print("hit pie")
+
+    # Fortify
+    if is_fortify_enabled(bin_info):
+        checksec.append("Fortify")
+
+
+    return checksec
 
 def find_location_vul_symbol(file_path, found_funcs):
-    binary_info = lief.parse(file_path)
     symbol_names = []
     symbol_location = []
     dynamic_symbols = []
     safe_funcs =[]
     count = 0
 
+    binary_info = lief.parse(file_path)
+    checksec = get_checksec(binary_info)
+    
     print(f"Checking Symbols in {file_path}...")
 
     for reloc in binary_info.pltgot_relocations:
         if reloc.has_symbol and reloc.symbol.name in dangerous_funcs:
             symbol_names.append(reloc.symbol.name)
-            safe_funcs.append(VULN_SAFE_MAP[reloc.symbol.name])
+            safe_funcs.append((reloc.symbol.name,VULN_SAFE_MAP[reloc.symbol.name]))
             symbol_location.append(f"0x{reloc.address:x}")
             print(f"\033[91mGOT entry for [ {reloc.symbol.name} ]: 0x{reloc.address:x} \033[0m")
             count += 1
@@ -71,7 +114,7 @@ def find_location_vul_symbol(file_path, found_funcs):
         if sym.name in dangerous_funcs and sym.name not in symbol_names:
             dynamic_symbols.append(sym.name)
             if VULN_SAFE_MAP[sym.name] not in safe_funcs :
-                safe_funcs.append(VULN_SAFE_MAP[sym.name])
+                safe_funcs.append((reloc.symbol.name,VULN_SAFE_MAP[sym.name]))
                 count += 1
 
         print(f"\033[93mDynamic symbol [ {sym.name} ] found (not in GOT)\033[0m")
@@ -85,12 +128,13 @@ def find_location_vul_symbol(file_path, found_funcs):
     print("=========================================================================================\n")
     
     detection_results.append({
-        "dangerous_functions": found_funcs,
-        "symbol_name": symbol_names,
+        # "dangerous_functions": found_funcs,
+        # "symbol_name": symbol_names,
         # "symbol_location": symbol_location,
         "dynamic_only": dynamic_symbols,
-        "safe_functsions" : safe_funcs,
-        "count" : count
+        "function_mapping" : safe_funcs,
+        "count" : count,
+        "checksec" : checksec
         # "patched_path": patched_path
     })
 
