@@ -35,13 +35,13 @@ def patch_the_function(binary_info, file_path):
                 print(f"\033[91m[!] GOT entry for {vuln_func}: 0x{reloc.address:x}\033[0m")
 
                 safe_func = VULN_SAFE_MAP[vuln_func]
-                safe_func_addr = get_plt_address(binary_info, safe_func)
+                safe_func_addr = get_plt_address(binary_info, safe_func['safe_func'])
 
                 if isinstance(safe_func_addr, int):
                     binary_info.patch_address(reloc.address, safe_func_addr)
-                    print(f"Patched {vuln_func} → {safe_func} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")
+                    print(f"Patched {vuln_func} → {safe_func['safe_func']} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")
                 else:
-                    print(f"Cannot patch: {vuln_func} → {safe_func}  : [ symbol address not found ]\n")
+                    print(f"Cannot patch: {vuln_func} → {safe_func['safe_func']}.  : [ symbol address not found ]\n")
 
     parsed_path = file_path.split('/')
     dst_path = os.path.join(patched_dir, parsed_path[-1])
