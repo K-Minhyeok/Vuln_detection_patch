@@ -27,7 +27,7 @@ def patch_the_function(binary_info,file_path):
                     binary_info.patch_address(reloc.address, safe_func_addr)
                     print(f"Patched {vuln_func} → {safe_func} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")
                 else:
-                    print(f"Cannot patch: {vuln_func} → {safe_func}  : [ symbol address not found ]\n")
+                    print(f"Cannot patch: {vuln_func} → {safe_func['safe_func']}.  : [ symbol address not found ]\n")
             #else:
                 #print(f"[ {vuln_func} ] is symboled, but not in Vuln functions.\n")
     parsed_path = file_path.split('/')
@@ -48,14 +48,14 @@ def find_location_vul_symbol(file_path,found_funcs):
         
     for reloc in binary_info.pltgot_relocations:
         if reloc.has_symbol:
-            if reloc.symbol.name in dangerous_funcs:
+            if reloc.symbol.name in VULN_SAFE_MAP:
                 symbol_names.append(reloc.symbol.name)
                 symbol_location.append(f"0x{reloc.address:x}")
                 print(f"\033[91mGOT entry for [ {reloc.symbol.name} ]: 0x{reloc.address:x} \033[0m")
                 count+=1
 
     for sym in binary_info.dynamic_symbols:
-        if sym.name in dangerous_funcs:
+        if sym.name in VULN_SAFE_MAP:
             if sym.name not in symbol_names:
                 dynamic_symbols.append(sym.name)
                 print(f"\033[93mDynamic symbol [ {sym.name} ] found (not in GOT)\033[0m")
@@ -86,13 +86,13 @@ def check_vulnerable_strings(file_path):
 
         output = subprocess.check_output(["strings",file_path],text=True)
 
-        for func in dangerous_funcs:
+        for func in VULN_SAFE_MAP:
             if func in output:
                 found_funcs.append(func)
 
         print(f"▼ There are {len(found_funcs)} vulnerable_commands in ['\033[92m strings {file_path} \033[0m'] ▼")
         if found_funcs:
-            print(f"\033[91m[ Warning ] : String {', '.join(found_funcs)} Founded \033[0m \n")
+            print(f"\033[91m[ Warning ] : string < {', '.join(found_funcs)} > Founded \033[0m \n")
             find_location_vul_symbol(file_path,found_funcs)
         else:
             print("\033[92m[ It's safe as far as I checked  :) ] \033[0m")
@@ -118,9 +118,6 @@ def get_elf_files(directory):
     return file_name
 
 
-with open("vuln_functions", "r") as f:
-    dangerous_funcs = [line.strip() for line in f]
-
 args = parse_arg()
 detection_results = []  
 result_lock = threading.Lock()
@@ -128,7 +125,6 @@ default_dir_path = "test_ELF_file/"
 target_files = get_elf_files(default_dir_path)
 threads = []
 
-#print(target_files)
 
 for i in target_files:
 #    print(i,"hit\n")
