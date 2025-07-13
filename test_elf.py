@@ -1,4 +1,3 @@
-from pwn import *
+import lief
 
-elf = ELF("./my_application")
-checksec(elf.path)
+binary_info = lief.parse("test_ELF_file/testagain")
