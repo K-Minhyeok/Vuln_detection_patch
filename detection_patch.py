@@ -7,7 +7,7 @@ import lief
 from arg_parser import parse_arg
 from vuln_safe_mapping import VULN_SAFE_MAP
 
-def get_plt_address(binary, func_name):
+def get_got_address(binary, func_name):
     for f in binary.pltgot_relocations:
         if f.has_symbol and f.symbol.name == func_name:
             return f.address
@@ -22,7 +22,7 @@ def patch_the_function(binary_info,file_path):
 
                 safe_func = VULN_SAFE_MAP[vuln_func]
 
-                safe_func_addr = get_plt_address(binary_info, safe_func['safe_func'])
+                safe_func_addr = get_got_address(binary_info, safe_func['safe_func'])
                 if isinstance(safe_func_addr, int):
                     binary_info.patch_address(reloc.address, safe_func_addr)
                     print(f"Patched {vuln_func} → {safe_func['safe_func']} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")

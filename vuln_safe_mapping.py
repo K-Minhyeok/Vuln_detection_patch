@@ -43,14 +43,6 @@ VULN_SAFE_MAP = {
         "safe_func": "memmove",
         "risk_level": "High"
     },
-    "mktemp": {
-        "safe_func": "mkstemp",
-        "risk_level": "Critical"
-    },
-    "tempnam": {
-        "safe_func": "mkstemp",
-        "risk_level": "Critical"
-    },
     "popen": {
         "safe_func": "execve",
         "risk_level": "Critical"
@@ -59,20 +51,4 @@ VULN_SAFE_MAP = {
         "safe_func": "getcwd",
         "risk_level": "High"
     },
-    "readlink": {
-        "safe_func": "readlinkat",
-        "risk_level": "High"
-    },
-    "gcvt": {
-        "safe_func": "snprintf",
-        "risk_level": "High"
-    },
-    "ecvt": {
-        "safe_func": "snprintf",
-        "risk_level": "High"
-    },
-    "fcvt": {
-        "safe_func": "snprintf",
-        "risk_level": "High"
-    }
 }
