@@ -7,11 +7,54 @@ import lief
 from arg_parser import parse_arg
 from vuln_safe_mapping import VULN_SAFE_MAP
 
-def get_plt_address(binary, func_name):
+def get_got_address(binary, func_name):
     for f in binary.pltgot_relocations:
         if f.has_symbol and f.symbol.name == func_name:
+            print(f"{f.symbol.name} address is 0x{f.address:x}===")
             return f.address
+
+    safe_func_sym = binary.get_dynamic_symbol(func_name)
+    if safe_func_sym is not None:
+        print(f"No address before , New address for {func_name} | address :  0x{safe_func_sym.value:x}")
+        return safe_func_sym.value
+        
+    print(f'no {func_name} symbol founded')
     return None
+
+def get_safe_func(vuln_list):
+    safe_funcs = []
+    for i in vuln_list:
+        safe_funcs.append(VULN_SAFE_MAP[i]['safe_func'])
+
+    print(f"got safe func {safe_funcs}") 
+    return safe_funcs   
+
+def register_symbol(binary_info,segments,vuln_func):
+
+    print(f"========{vuln_func}=======")
+
+    safe_funcs  = get_safe_func(vuln_func)
+    for sym in safe_file.dynamic_symbols:
+        if sym.name is not None and sym.name in safe_funcs:
+            existing_symbol = binary_info.get_dynamic_symbol(sym.name)
+            if existing_symbol:
+                print(f"Already has {existing_symbol.name}")
+                continue
+            
+            new_symbol = lief.ELF.Symbol()
+            new_symbol.name = sym.name
+            new_symbol.type = sym.type
+            new_symbol.binding = sym.binding
+            new_symbol.visibility = sym.visibility
+            new_symbol.size = sym.size
+            
+            new_symbol.value = segments.virtual_address + sym.value
+            
+            binary_info.add_dynamic_symbol(new_symbol)
+            print(f"Registered symbol: {sym.name} at 0x{new_symbol.value:x}")
+
+
+
 
 def patch_the_function(binary_info,file_path):
     for reloc in binary_info.pltgot_relocations:
@@ -19,18 +62,18 @@ def patch_the_function(binary_info,file_path):
             vuln_func = reloc.symbol.name
             if vuln_func in VULN_SAFE_MAP:
                 safe_func = VULN_SAFE_MAP[vuln_func]
-                safe_func_addr = get_plt_address(binary_info, safe_func['safe_func'])
-
+                safe_func_addr = get_got_address(binary_info, safe_func['safe_func'])
                 if isinstance(safe_func_addr, int):
                     binary_info.patch_address(reloc.address, safe_func_addr)
                     print(f"Patched {vuln_func} → {safe_func['safe_func']} at 0x{reloc.address:x} with address 0x{safe_func_addr:x}\n")
                 else:
-                    print(f"Cannot patch: {vuln_func} → {safe_func['safe_func']}.  : [ symbol address not found ]\n")
-
+                    print(f"Cannot patch: {vuln_func} → {safe_func['safe_func']}.  : [ symbol address not found ]\n")                    
 
     parsed_path = file_path.split('/')
     dst_path = "test_ELF_file/patched/"+parsed_path[1]
     print(f"\033[96mPatched ELF saved as {dst_path}\033[0m")
+    #binary_info.write(dst_path)
+
 
 
 
@@ -40,6 +83,9 @@ def find_location_vul_symbol(file_path,found_funcs):
     symbol_location =[]
     dynamic_symbols =[]
     count = 0
+    combined_segment = binary_info.add(safe_file.segments[0])  
+
+    register_symbol(binary_info,combined_segment,found_funcs)
 
     print(f"Checking Symbols in {file_path}...")
         
@@ -63,6 +109,8 @@ def find_location_vul_symbol(file_path,found_funcs):
         print(f"total {count} vuln functions\n")
         print("call the patch func\n")
         patch_the_function(binary_info,file_path)
+    else:
+        print("No Vulnerable Symbol Detected")
     
     print("=========================================================================================\n")
 
@@ -121,7 +169,7 @@ result_lock = threading.Lock()
 default_dir_path = "test_ELF_file/"
 target_files = get_elf_files(default_dir_path)
 threads = []
-
+safe_file = lief.parse("safe_func")
 
 for i in target_files:
 #    print(i,"hit\n")
