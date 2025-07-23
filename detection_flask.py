@@ -68,22 +68,18 @@ def get_checksec(bin_info):
         checksec.append("RELRO: None")
 
 
-    # Canary
     if getattr(bin_info, "has_canary", False):
         checksec.append("Canary")
         print("hit can")
 
-    # NX
     if getattr(bin_info, "has_nx", False):
         checksec.append("NX")
         print("hit nx")
 
-    # PIE
     if getattr(bin_info, "has_pie", False):
         checksec.append("PIE")
         print("hit pie")
 
-    # Fortify
     if is_fortify_enabled(bin_info):
         checksec.append("Fortify")
 
@@ -176,8 +172,10 @@ def analyze():
     detection_results.clear()
     check_vulnerable_strings(save_path)
 
-    return jsonify(file.filename,detection_results)
-
+    return jsonify({
+        "filename": file.filename,
+        "results": detection_results
+    })
 
 @app.route('/')
 def upload_form():
