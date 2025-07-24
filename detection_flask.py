@@ -6,9 +6,12 @@ import threading
 import lief
 from flask import Flask, request, jsonify, render_template
 from vuln_safe_mapping import VULN_SAFE_MAP
+from flask_cors import CORS
+
 
     
 app = Flask(__name__)
+CORS(app, origins="*")
 detection_results = []
 result_lock = threading.Lock()
 default_dir_path = "test_ELF_file/"
