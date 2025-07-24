@@ -1,0 +1,34 @@
+[
+    "file_name",
+    {
+        "checksec": [
+            "RELRO: None",
+            "NX"
+        ],
+        "count": 3,
+        "dynamic_only": [],
+        "function_mapping": [
+            [
+                "printf",
+                {
+                    "risk_level": "Low",
+                    "safe_func": "snprintf"
+                }
+            ],
+            [
+                "system",
+                {
+                    "risk_level": "Critical",
+                    "safe_func": "execve"
+                }
+            ],
+            [
+                "_isoc99_scanf",
+                {
+                    "risk_level": "Medium",
+                    "safe_func": "fscanf"
+                }
+            ]
+        ]
+    }
+]
