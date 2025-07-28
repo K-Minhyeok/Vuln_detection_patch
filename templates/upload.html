@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ELF 파일 업로드</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; margin-top: 100px;">
+    <h2>🔍 취약 함수 탐지기 - ELF 파일 업로드</h2>
+    <form action="/analyze" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".elf,.bin,.so" required><br><br>
+        <button type="submit">업로드 및 분석 시작</button>
+    </form>
+</body>
+</html>
