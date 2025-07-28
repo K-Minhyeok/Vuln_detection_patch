@@ -4,7 +4,7 @@ import json
 import os
 import threading
 import lief
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, redirect
 from vuln_safe_mapping import VULN_SAFE_MAP
 from flask_cors import CORS
 
@@ -182,7 +182,7 @@ def analyze():
 
 @app.route('/')
 def upload_form():
-    return render_template('upload.html')
+    return redirect("https://vuln-detection-front.vercel.app/")
 
 
 if __name__ == '__main__':
