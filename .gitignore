@@ -1,4 +1,5 @@
 result.json
 
-test_ELF_file
+/test_ELF_file
 __pycache__
+/test_command
