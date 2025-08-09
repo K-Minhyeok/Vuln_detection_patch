@@ -2,4 +2,6 @@ result.json
 
 /test_ELF_file
 __pycache__
+*/__pycache__
 /test_command
+patch_results.json
