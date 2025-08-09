@@ -4,7 +4,6 @@ import json
 import os
 import threading
 import lief
-from arg_parser import parse_arg
 from vuln_safe_mapping import VULN_SAFE_MAP
 
 def get_got_address(binary, func_name):
@@ -117,8 +116,6 @@ def get_elf_files(directory):
 
     return file_name
 
-
-args = parse_arg()
 detection_results = []  
 result_lock = threading.Lock()
 default_dir_path = "test_ELF_file/"
@@ -135,9 +132,3 @@ for i in target_files:
 
 for t in threads:
     t.join()
-
-
-if args.json:
-    print("hit")
-    with open("result.json", "w") as f:
-        json.dump(detection_results, f, indent=2)
