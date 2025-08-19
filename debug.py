@@ -6,6 +6,7 @@ import stat
 from vuln_safe_mapping import VULN_SAFE_MAP
 
 SAFE_FUNC_PATH = "safe_func.so"
+DEST_PATH = "test_ELF_file/patched/"
 
 def get_got_address(binary, func_name):
     """GOT 주소 찾기"""
@@ -70,30 +71,32 @@ def get_custom_func_address(binary_info, safe_func_path, custom_func_name):
 def patch_binary(binary_info, file_path, vuln_funcs):
     """바이너리 패치 - LIEF 내장 기능 사용"""
     patch_count = 0
-    
+    path_tmp = file_path.split("/") 
+    file_name = path_tmp[-1]
+
+    patched_dir = os.path.join(DEST_PATH,file_name)
+    print(f"======={patched_dir}======")
     for vuln_func in vuln_funcs:
         if vuln_func not in VULN_SAFE_MAP:
             continue
         
-        # GOT 주소 찾기
         got_addr = get_got_address(binary_info, vuln_func)
         if got_addr is None:
             continue
         
-        # 커스텀 함수 이름 처리
         custom_name = VULN_SAFE_MAP[vuln_func]['custom_func']
         
-        # 커스텀 함수 주소 계산
         custom_addr = get_custom_func_address(binary_info, SAFE_FUNC_PATH, custom_name)
         if custom_addr is None:
             continue
         
         try:
-            # LIEF의 patch_address 사용
-            binary_info.patch_address(got_addr, custom_addr)
+            binary_info.patch_pltgot(vuln_func, custom_addr)
             print(f"[✓] Successfully patched {vuln_func} → {custom_name}")
             patch_count += 1
-            
+            binary_info.write(patched_dir)
+            print(f"[✓] Patched ELF saved as {patched_dir} ({patch_count} functions patched)")
+
         except Exception as e:
             print(f"[!] Failed to patch {vuln_func}: {e}")
             continue
@@ -168,6 +171,7 @@ def process_elf_file(file_path):
     
     # 4. 바이너리 파싱 및 패치
     try:
+        print(f"opening the {combined_path}")
         binary_info = lief.parse(combined_path)
         if binary_info is None:
             print(f"[!] Cannot parse combined binary: {combined_path}")
@@ -188,19 +192,7 @@ def process_elf_file(file_path):
         # 패치 수행
         patch_count = patch_binary(binary_info, combined_path, got_funcs)
         
-        if patch_count > 0:
-            # 패치된 파일 저장
-            patched_dir = "test_ELF_file/patched"
-            os.makedirs(patched_dir, exist_ok=True)
-            
-            dst_path = os.path.join(patched_dir, filename)
-            binary_info.write(dst_path)
-            
-            # 실행 권한 설정
-            os.chmod(dst_path, os.stat(dst_path).st_mode | stat.S_IEXEC)
-            
-            print(f"[✓] Patched ELF saved as {dst_path} ({patch_count} functions patched)")
-        else:
+        if patch_count <= 0:
             print(f"[!] No functions were successfully patched for {filename}")
             
     except Exception as e:
