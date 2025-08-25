@@ -1,12 +1,16 @@
-<h1>Detection and patch of Vulnerable Functions</h1>
+# ELF Vulnerability Detector & Patcher
 
-📌 It can detect if your ELF(.bin) File is Vulnerable.
-📌 And we can patch the Vulnerable ELF file 
+## 📌 Overview
+This project provides a tool to **detect vulnerable functions** in ELF (`.bin`) binaries and **patch them** with safer alternatives.
 
-<h2>[ How to Use ]</h2>
+✅ Detects unsafe functions (`gets`, `strcpy`, `sprintf`, …)  <br>
+✅ Automatically patches with **secure wrapper functions in SAFE bin file**  <br>
+✅ Supports **batch scanning** for multiple ELF files at once  <br>
+
+<h2>[ Usage ]</h2>
 You can put your several ELF(.bin) files into 'test_ELF_file' as below<br>
 <br>
-ex) In this picture, I'm Inspecting a,b files.
+ex) In this picture, It's Inspecting a,b files.
 
 ![{8BE0FB80-3889-434F-80E5-4DE63CC8F0D0}](https://github.com/user-attachments/assets/b294b664-0b59-4bc7-888d-99b4bc81b93b)
 
@@ -15,17 +19,17 @@ ex) In this picture, I'm Inspecting a,b files.
 
 <br>
 <br>
-and run **dectection_multipl.py** to get the result
+and run dectection_patch.py to patch the file that could be vulnerable
 <br>
-<h3> > **python detection_multipl.py** </h3>
+<h3> > python3 detection_patch.py </h3>
 <br>
 
-![{A807E088-7C44-4086-9DC9-48E3C448FF04}](https://github.com/user-attachments/assets/58bbc2df-36d1-42e3-9d4e-2266bb4fa9c7)
-
-<h2> Addtional Options </h2>
-
-1. -j  : Store the result of detection with result.json <br>
-ex)  ![image](https://github.com/user-attachments/assets/76bde89e-6855-4785-97f3-c8bb50ddd4f1)
+<img width="791" height="31" alt="image" src="https://github.com/user-attachments/assets/e3d757f8-aaab-445b-af28-f85616efad36" />
 
 
 <br>
+
+# Result
+<img width="704" height="292" alt="image" src="https://github.com/user-attachments/assets/f95668ea-79ec-4b06-940f-6be8f6116a93" />
+<img width="791" height="140" alt="image" src="https://github.com/user-attachments/assets/19466884-1ff0-4fce-833a-11f29784441c" />
+
